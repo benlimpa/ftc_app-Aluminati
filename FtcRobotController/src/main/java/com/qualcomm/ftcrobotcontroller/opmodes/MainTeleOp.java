@@ -22,6 +22,8 @@ public class MainTeleOp extends OpMode
     DcMotor     leftDrive;
     DcMotor     rightDrive;
 
+    DcMotor     pimpWheel;
+
     DcMotor     bottomSpool;
     DcMotor     topSpool;
 
@@ -48,6 +50,8 @@ public class MainTeleOp extends OpMode
         leftDrive = hardwareMap.dcMotor.get("leftDrive");
         rightDrive = hardwareMap.dcMotor.get("rightDrive");
         rightDrive.setDirection(DcMotor.Direction.REVERSE);
+
+        pimpWheel = hardwareMap.dcMotor.get("pimpWheel");
 
 
         motorControl1 = hardwareMap.dcMotorController.get("MotorControl1");
@@ -97,6 +101,13 @@ public class MainTeleOp extends OpMode
         leftDrive.setPower(drivePower[0]);
         rightDrive.setPower(drivePower[1]);
 
+        if (gamepad1.a) {
+            pimpWheel.setPower(-0.4);
+        } else if (gamepad1.b) {
+            pimpWheel.setPower(0.4);
+        } else {
+            pimpWheel.setPower(0);
+        }
 
         if (gamepad2.dpad_down) {
             manualMode = true;
