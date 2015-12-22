@@ -3,6 +3,7 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoController;
 
 /**
@@ -18,7 +19,7 @@ public class MainTeleOp extends OpMode
     DcMotorController               motorControl3;
     DcMotorController               motorControl4;
 
-    //ServoController                 servoControl;
+    ServoController                 servoControl;
     DcMotor     leftDrive;
     DcMotor     rightDrive;
 
@@ -30,6 +31,8 @@ public class MainTeleOp extends OpMode
     DcMotor     leftRangle;
     DcMotor     rightRangle;
 
+    Servo       servoTest;
+
     boolean     manualMode;
     //int     loops;
 
@@ -37,8 +40,18 @@ public class MainTeleOp extends OpMode
     public void init()
     {
         manualMode = false;
-        //leftDrive   = hardwareMap.dcMotor.get("leftDrive");
-        //rightDrive  = hardwareMap.dcMotor.get("rightDrive");
+
+        motorControl1 = hardwareMap.dcMotorController.get("MotorControl1");
+        motorControl2 = hardwareMap.dcMotorController.get("MotorControl2");
+        motorControl3 = hardwareMap.dcMotorController.get("MotorControl3");
+        motorControl4 = hardwareMap.dcMotorController.get("MotorControl4");
+
+        servoControl = hardwareMap.servoController.get("ServoControl");
+
+        motorControl1.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
+        motorControl2.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
+        motorControl3.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
+        motorControl4.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
 
         topSpool = hardwareMap.dcMotor.get("topSpool");
         bottomSpool = hardwareMap.dcMotor.get("bottomSpool");
@@ -53,31 +66,14 @@ public class MainTeleOp extends OpMode
 
         pimpWheel = hardwareMap.dcMotor.get("pimpWheel");
 
-
-        motorControl1 = hardwareMap.dcMotorController.get("MotorControl1");
-        motorControl2 = hardwareMap.dcMotorController.get("MotorControl2");
-        motorControl3 = hardwareMap.dcMotorController.get("MotorControl3");
-        motorControl4 = hardwareMap.dcMotorController.get("MotorControl4");
-
-        //leftDrive.setChannelMode(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
-        //rightDrive.setChannelMode(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
-        //rightDrive.setDirection(DcMotor.Direction.REVERSE);
-
-        motorControl1.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
-        motorControl2.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
-        motorControl3.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
-        motorControl4.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
+        servoTest = hardwareMap.servo.get("testServo");
     }
 
     @Override
     public void loop()
     {
-        //if (devMode == DcMotorController.DeviceMode.WRITE_ONLY)
-        //{
-            //double[] drivePower = getDrivePower(-scaleInput(gamepad1.left_stick_x), -scaleInput(gamepad1.left_stick_y));
 
-            //telemetry.addData("Left Drive: ", drivePower[0]);
-            //telemetry.addData("Right Drive: ", drivePower[1]);
+        // Switch Between controlling the rangles and the spools
         if (!manualMode) {
             if (gamepad2.a) {
                 rightRangle.setPower(-0.4);
@@ -92,15 +88,15 @@ public class MainTeleOp extends OpMode
             topSpool.setPower(scaleInput(gamepad2.right_stick_y));
             bottomSpool.setPower(scaleInput(gamepad2.left_stick_y)*2/5);
         } else {
-            rightRangle.setPower(scaleInput(gamepad2.left_stick_y));
-            leftRangle.setPower(scaleInput(gamepad2.right_stick_y));
+            rightRangle.setPower(-scaleInput(gamepad2.right_stick_y));
+            leftRangle.setPower(-scaleInput(gamepad2.left_stick_y));
         }
-
 
         double[] drivePower = getDrivePower(-scaleInput(gamepad1.left_stick_x), -scaleInput(gamepad1.left_stick_y));
         leftDrive.setPower(drivePower[0]);
         rightDrive.setPower(drivePower[1]);
 
+        // Pimp Wheel Control
         if (gamepad1.a) {
             pimpWheel.setPower(-0.4);
         } else if (gamepad1.b) {
@@ -109,12 +105,18 @@ public class MainTeleOp extends OpMode
             pimpWheel.setPower(0);
         }
 
+        if (gamepad1.x) {
+            servoTest.setPosition(0);
+        } else if (gamepad1.y) {
+            servoTest.setPosition(1);
+        }
+
         if (gamepad2.dpad_down) {
             manualMode = true;
         } else if (gamepad2.dpad_up) {
             manualMode = false;
         }
-        telemetry.addData("Mode: ", manualMode);
+        telemetry.addData("Control Mode: ", manualMode);
 /*
             if (gamepad1.x) {
                 leftRangle.setPower(-0.4);
@@ -150,7 +152,8 @@ public class MainTeleOp extends OpMode
         // nothing to stop
     }
 
-    private double[] getDrivePower(double x, double y) // Takes x and y value of joystick, returns drivePower[leftDrive, rightDrive]
+    // Takes x and y value of joystick, returns drivePower[leftDrive, rightDrive]
+    private double[] getDrivePower(double x, double y)
     {
         double[] drivePower = new double[2];
 
