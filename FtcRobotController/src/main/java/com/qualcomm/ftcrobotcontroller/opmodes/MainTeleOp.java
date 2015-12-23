@@ -31,6 +31,8 @@ public class MainTeleOp extends OpMode
     DcMotor     leftRangle;
     DcMotor     rightRangle;
 
+    DcMotor     brush;
+
     Servo       servoTest;
 
     boolean     manualMode;
@@ -66,6 +68,8 @@ public class MainTeleOp extends OpMode
 
         pimpWheel = hardwareMap.dcMotor.get("pimpWheel");
 
+        brush = hardwareMap.dcMotor.get("brush");
+
         servoTest = hardwareMap.servo.get("testServo");
     }
 
@@ -74,16 +78,40 @@ public class MainTeleOp extends OpMode
     {
 
         // Switch Between controlling the rangles and the spools
-        if (!manualMode) {
-            if (gamepad2.a) {
+        if (!manualMode)
+        {
+            // Rangle Control
+            if (gamepad2.a)
+            {
                 rightRangle.setPower(-0.4);
                 leftRangle.setPower(-0.4);
-            } else if (gamepad2.b) {
+            }
+            else if (gamepad2.b)
+            {
                 rightRangle.setPower(0.4);
                 leftRangle.setPower(0.4);
-            } else {
+            }
+            else
+            {
                 rightRangle.setPower(0);
                 leftRangle.setPower(0);
+            }
+
+            // Spool Control
+            if (gamepad2.x)
+            {
+                topSpool.setPower(1);
+                bottomSpool.setPower(1);
+            }
+            else if (gamepad2.y)
+            {
+                topSpool.setPower(-1);
+                bottomSpool.setPower(-1);
+            }
+            else
+            {
+                topSpool.setPower(0);
+                bottomSpool.setPower(0);
             }
             topSpool.setPower(scaleInput(gamepad2.right_stick_y));
             bottomSpool.setPower(scaleInput(gamepad2.left_stick_y)*2/5);
@@ -95,6 +123,8 @@ public class MainTeleOp extends OpMode
         double[] drivePower = getDrivePower(-scaleInput(gamepad1.left_stick_x), -scaleInput(gamepad1.left_stick_y));
         leftDrive.setPower(drivePower[0]);
         rightDrive.setPower(drivePower[1]);
+
+        brush.setPower(scaleInput(gamepad1.right_trigger));
 
         // Pimp Wheel Control
         if (gamepad1.a) {
