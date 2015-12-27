@@ -2,7 +2,7 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
+
 /**
  * Created by BenL on 11/23/15.
  */
@@ -11,24 +11,43 @@ public class ServoTest extends OpMode
 {
 
     ServoController servoControl;
-    Servo           servo1;
+    Servo           servo;
+    double          servoPos;
+    boolean         oldX;
+    boolean         oldY;
+
+    // Constants
+    final double   INTERVAL = 0.1;
 
     @Override
     public void init()
     {
 
-        servo1 = hardwareMap.servo.get("servo1");
-
+        servo        = hardwareMap.servo.get("servo");
         servoControl = hardwareMap.servoController.get("ServoControl");
+
+        servoPos = 0;
     }
 
     @Override
     public void loop()
     {
 
-        double servoVal = Range.clip(gamepad1.left_stick_y/2+0.5, 0, 1);
-        telemetry.addData("Servo Value:  ", servoVal);
-        servo1.setPosition(servoVal);
+        // Increment or decrement the servo position once
+        if (gamepad1.x && !oldX)
+        {
+            servoPos -= INTERVAL;
+        }
+        else if (gamepad1.y && !oldY)
+        {
+            servoPos += INTERVAL;
+        }
+
+        telemetry.addData("Servo Value:  ", servoPos);
+        servo.setPosition(servoPos);
+
+        oldX = gamepad1.x;
+        oldY = gamepad1.y;
     }
 
     @Override
