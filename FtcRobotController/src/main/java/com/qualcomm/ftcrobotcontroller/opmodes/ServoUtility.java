@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  * Created by BenL on 11/23/15.
  */
 
-public class ServoTest extends OpMode
+public class ServoUtility extends OpMode
 {
 
     ServoController servoControl;
