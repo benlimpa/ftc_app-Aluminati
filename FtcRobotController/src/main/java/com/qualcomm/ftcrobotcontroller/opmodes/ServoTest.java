@@ -15,9 +15,9 @@ public class ServoTest extends OpMode
     double          servoPos;
     boolean         oldX;
     boolean         oldY;
-
-    // Constants
-    final double   INTERVAL = 0.1;
+    boolean         oldLB;
+    boolean         oldRB;
+    double          interval;
 
     @Override
     public void init()
@@ -27,27 +27,42 @@ public class ServoTest extends OpMode
         servoControl = hardwareMap.servoController.get("ServoControl");
 
         servoPos = 0;
+        interval = 0.1;
     }
 
     @Override
     public void loop()
     {
 
+        // Change increment/decrement interval
+        if (gamepad1.left_bumper && !oldLB)
+            interval -= 0.05;
+        else if (gamepad1.right_bumper && !oldRB)
+            interval += 0.05;
+
         // Increment or decrement the servo position once
         if (gamepad1.x && !oldX)
-        {
-            servoPos -= INTERVAL;
-        }
+            servoPos -= interval;
         else if (gamepad1.y && !oldY)
-        {
-            servoPos += INTERVAL;
-        }
+            servoPos += interval;
 
-        telemetry.addData("Servo Value:  ", servoPos);
+        // Set Servo Position to extrema
+        if (gamepad1.dpad_down)
+            servoPos = 0;
+        else if (gamepad1.dpad_up)
+            servoPos = 1;
+        else if (gamepad1.dpad_right)
+            servoPos = 0.5;
+
         servo.setPosition(servoPos);
 
         oldX = gamepad1.x;
         oldY = gamepad1.y;
+        oldLB = gamepad1.left_bumper;
+        oldRB = gamepad1.right_bumper;
+
+        telemetry.addData("Servo Value:  ", servoPos);
+        telemetry.addData("Increment/Decrement Interval: ", interval);
     }
 
     @Override
