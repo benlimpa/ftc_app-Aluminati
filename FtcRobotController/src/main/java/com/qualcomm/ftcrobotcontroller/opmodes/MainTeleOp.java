@@ -11,15 +11,15 @@ import com.qualcomm.robotcore.hardware.ServoController;
  */
 public class MainTeleOp extends OpMode
 {
-
-    DcMotorController.DeviceMode    devMode;
-
+    // Controllers
     DcMotorController               motorControl1;
     DcMotorController               motorControl2;
     DcMotorController               motorControl3;
     DcMotorController               motorControl4;
 
     ServoController                 servoControl;
+
+    // Motors
     DcMotor     leftDrive;
     DcMotor     rightDrive;
 
@@ -33,16 +33,27 @@ public class MainTeleOp extends OpMode
 
     DcMotor     brush;
 
+    // Servos
     Servo       servoTest;
+    Servo       leftBoxServo;
+    Servo       rightBoxServo;
 
+    // States
     boolean     manualMode;
-    //int     loops;
+    boolean     fieldOrientation;
+
+    // Constants
+    final boolean RIGHT = true;
+    final boolean LEFT = false;
 
     @Override
     public void init()
     {
+        // States
         manualMode = false;
+        fieldOrientation = RIGHT;
 
+        // Controllers
         motorControl1 = hardwareMap.dcMotorController.get("MotorControl1");
         motorControl2 = hardwareMap.dcMotorController.get("MotorControl2");
         motorControl3 = hardwareMap.dcMotorController.get("MotorControl3");
@@ -55,6 +66,7 @@ public class MainTeleOp extends OpMode
         motorControl3.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
         motorControl4.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
 
+        // Motors
         topSpool = hardwareMap.dcMotor.get("topSpool");
         bottomSpool = hardwareMap.dcMotor.get("bottomSpool");
 
@@ -70,12 +82,43 @@ public class MainTeleOp extends OpMode
 
         brush = hardwareMap.dcMotor.get("brush");
 
+        // Servos
         servoTest = hardwareMap.servo.get("testServo");
+        leftBoxServo = hardwareMap.servo.get("leftBoxServo");
+        rightBoxServo = hardwareMap.servo.get("rightBoxServo");
     }
 
     @Override
     public void loop()
     {
+        // Change Modes:
+        if (gamepad2.dpad_down)
+        {
+            manualMode = true;
+        }
+        else if (gamepad2.dpad_up)
+        {
+            manualMode = false;
+        }
+
+        if (gamepad1.dpad_right)
+        {
+            fieldOrientation = RIGHT;
+        }
+        else if (gamepad1.dpad_left)
+        {
+            fieldOrientation = LEFT;
+        }
+
+        if (fieldOrientation == RIGHT)
+        {
+            telemetry.addData("Field Orientation: ", "right");
+        }
+        else if (fieldOrientation == LEFT)
+        {
+            telemetry.addData("Field Orientation: ", "left");
+        }
+
 
         // Switch Between controlling the rangles and the spools
         if (!manualMode)
@@ -135,45 +178,36 @@ public class MainTeleOp extends OpMode
             pimpWheel.setPower(0);
         }
 
-        if (gamepad1.x) {
-            servoTest.setPosition(0);
-        } else if (gamepad1.y) {
-            servoTest.setPosition(1);
-        }
-
-        if (gamepad2.dpad_down) {
-            manualMode = true;
-        } else if (gamepad2.dpad_up) {
-            manualMode = false;
-        }
         telemetry.addData("Control Mode: ", manualMode);
-/*
-            if (gamepad1.x) {
-                leftRangle.setPower(-0.4);
-            } else if (gamepad1.y) {
-                leftRangle.setPower(0.4);
-            } else {
-                leftRangle.setPower(0);
+
+        // Servos
+
+        if (fieldOrientation == RIGHT)
+        {
+            if (gamepad1.x)
+            {
+                rightBoxServo.setPosition(0); // down
+                telemetry.addData("Right Box Servo: ", 0);
             }
-            */
-
-        //}
-
-        /*if (devMode == DcMotorController.DeviceMode.READ_ONLY)
-        {
-            telemetry.addData("Left Drive Power: ", leftDrive.getPower());
-            telemetry.addData("Left Drive Power: ", leftDrive.getPower());
+            else if (gamepad1.y)
+            {
+                rightBoxServo.setPosition(0.6); // up
+                telemetry.addData("Right Box Servo: ", 0.6);
+            }
         }
-        */
-/*
-        if ((loops % 17) == 0)
+        else if (fieldOrientation == LEFT)
         {
-            motorControl.setMotorControllerDeviceMode(DcMotorController.DeviceMode.READ_ONLY);
-
+            if (gamepad1.x)
+            {
+                leftBoxServo.setPosition(0.6); // up
+                telemetry.addData("Left Box Servo: ", 0.6);
+            }
+            else if (gamepad1.y)
+            {
+                leftBoxServo.setPosition(0); // down
+                telemetry.addData("Left Box Servo: ", 0);
+            }
         }
-        */
-        //devMode = motorControl.getMotorControllerDeviceMode();
-        //loops++;
     }
 
     @Override
