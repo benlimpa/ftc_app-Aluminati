@@ -54,6 +54,11 @@ public class ServoUtility extends OpMode
         else if (gamepad1.dpad_right)
             servoPos = 0.5;
 
+        if (servoPos < 0)
+            servoPos = 0;
+        else if (servoPos > 1)
+            servoPos = 1;
+
         servo.setPosition(servoPos);
 
         oldX = gamepad1.x;
