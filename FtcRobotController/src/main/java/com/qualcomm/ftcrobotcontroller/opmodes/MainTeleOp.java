@@ -25,8 +25,8 @@ public class MainTeleOp extends OpMode
 
     DcMotor     pimpWheel;
 
-    DcMotor     bottomSpool;
-    DcMotor     topSpool;
+    DcMotor     leftSpool;
+    DcMotor     rightSpool;
 
     DcMotor     leftRangle;
     DcMotor     rightRangle;
@@ -34,9 +34,14 @@ public class MainTeleOp extends OpMode
     DcMotor     brush;
 
     // Servos
-    Servo       servoTest;
     Servo       leftBoxServo;
     Servo       rightBoxServo;
+
+    Servo       leftClawServo;
+    Servo       rightClawServo;
+
+    Servo       leftBrushArmServo;
+    Servo       rightBrushArmServo;
 
     // States
     boolean     manualMode;
@@ -67,8 +72,8 @@ public class MainTeleOp extends OpMode
         motorControl4.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
 
         // Motors
-        topSpool = hardwareMap.dcMotor.get("topSpool");
-        bottomSpool = hardwareMap.dcMotor.get("bottomSpool");
+        rightSpool = hardwareMap.dcMotor.get("rightSpool");
+        leftSpool = hardwareMap.dcMotor.get("leftSpool");
 
         leftRangle = hardwareMap.dcMotor.get("leftRangle");
         rightRangle = hardwareMap.dcMotor.get("rightRangle");
@@ -79,13 +84,30 @@ public class MainTeleOp extends OpMode
         rightDrive.setDirection(DcMotor.Direction.REVERSE);
 
         pimpWheel = hardwareMap.dcMotor.get("pimpWheel");
+        pimpWheel.setChannelMode(DcMotorController.RunMode.RUN_TO_POSITION);
+        pimpWheel.setPower(1);
 
         brush = hardwareMap.dcMotor.get("brush");
 
         // Servos
-        servoTest = hardwareMap.servo.get("testServo");
+
         leftBoxServo = hardwareMap.servo.get("leftBoxServo");
         rightBoxServo = hardwareMap.servo.get("rightBoxServo");
+
+        leftBrushArmServo = hardwareMap.servo.get("leftBrushArmServo");
+        rightBrushArmServo = hardwareMap.servo.get("rightBrushArmServo");
+
+        leftClawServo = hardwareMap.servo.get("leftClawServo");
+        rightClawServo = hardwareMap.servo.get("rightClawServo");
+    }
+
+    @Override
+    public void start()
+    {
+
+        // Set Servos to default positions
+        leftBoxServo.setPosition(0);
+        rightBoxServo.setPosition(0.6);
     }
 
     @Override
@@ -101,11 +123,11 @@ public class MainTeleOp extends OpMode
             manualMode = false;
         }
 
-        if (gamepad1.dpad_right)
+        if (gamepad2.dpad_right)
         {
             fieldOrientation = RIGHT;
         }
-        else if (gamepad1.dpad_left)
+        else if (gamepad2.dpad_left)
         {
             fieldOrientation = LEFT;
         }
@@ -141,55 +163,49 @@ public class MainTeleOp extends OpMode
             }
 
             // Spool Control
-            if (gamepad2.x)
-            {
-                topSpool.setPower(1);
-                bottomSpool.setPower(1);
-            }
-            else if (gamepad2.y)
-            {
-                topSpool.setPower(-1);
-                bottomSpool.setPower(-1);
-            }
-            else
-            {
-                topSpool.setPower(0);
-                bottomSpool.setPower(0);
-            }
-            topSpool.setPower(scaleInput(gamepad2.right_stick_y));
-            bottomSpool.setPower(scaleInput(gamepad2.left_stick_y)*2/5);
-        } else {
+            rightSpool.setPower(scaleInput(gamepad2.right_stick_y));
+            leftSpool.setPower(scaleInput(gamepad2.left_stick_y)*2/5);
+
+        }
+        else
+        {
             rightRangle.setPower(-scaleInput(gamepad2.right_stick_y));
             leftRangle.setPower(-scaleInput(gamepad2.left_stick_y));
         }
 
+        // Drive Control
         double[] drivePower = getDrivePower(-scaleInput(gamepad1.left_stick_x), -scaleInput(gamepad1.left_stick_y));
         leftDrive.setPower(drivePower[0]);
         rightDrive.setPower(drivePower[1]);
 
-        brush.setPower(scaleInput(gamepad1.right_trigger));
+        // Brush Control
+        if (gamepad1.right_trigger > 0)
+            brush.setPower(gamepad1.right_trigger);
+        else if (gamepad1.right_bumper)
+            brush.setPower(-0.3);
+        else
+            brush.setPower(0);
 
         // Pimp Wheel Control
-        if (gamepad1.a) {
-            pimpWheel.setPower(-0.4);
-        } else if (gamepad1.b) {
-            pimpWheel.setPower(0.4);
-        } else {
-            pimpWheel.setPower(0);
-        }
+        if (Math.abs(drivePower[0] - drivePower[1]) > 0.75)
+            pimpWheel.setTargetPosition(degToEncoder(360));
+        else
+            pimpWheel.setTargetPosition(degToEncoder(0));
 
-        telemetry.addData("Control Mode: ", manualMode);
 
-        // Servos
+        telemetry.addData("Manual Rangle Control: ", manualMode);
 
+        /*
+         *  Servos
+         */
         if (fieldOrientation == RIGHT)
         {
-            if (gamepad1.x)
+            if (gamepad2.x)
             {
                 rightBoxServo.setPosition(0); // down
                 telemetry.addData("Right Box Servo: ", 0);
             }
-            else if (gamepad1.y)
+            else if (gamepad2.y)
             {
                 rightBoxServo.setPosition(0.6); // up
                 telemetry.addData("Right Box Servo: ", 0.6);
@@ -197,16 +213,40 @@ public class MainTeleOp extends OpMode
         }
         else if (fieldOrientation == LEFT)
         {
-            if (gamepad1.x)
+            if (gamepad2.x)
             {
-                leftBoxServo.setPosition(0.6); // up
+                leftBoxServo.setPosition(0.6); // down
                 telemetry.addData("Left Box Servo: ", 0.6);
             }
-            else if (gamepad1.y)
+            else if (gamepad2.y)
             {
-                leftBoxServo.setPosition(0); // down
+                leftBoxServo.setPosition(0); // up
                 telemetry.addData("Left Box Servo: ", 0);
             }
+        }
+
+        // Claws
+        if (gamepad2.right_bumper) // up
+        {
+            leftClawServo.setPosition(0.1);
+            rightClawServo.setPosition(1);
+        }
+        else if (gamepad2.right_trigger > 0.1) // down
+        {
+            leftClawServo.setPosition(0.7);
+            rightClawServo.setPosition(0.35);
+        }
+
+        // Brush Arm
+        if (gamepad1.left_bumper) // up
+        {
+            leftBrushArmServo.setPosition(0.25);
+            rightBrushArmServo.setPosition(0.53);
+        }
+        else if (gamepad1.left_trigger > 0.1) // down
+        {
+            leftBrushArmServo.setPosition(0.8);
+            rightBrushArmServo.setPosition(0.2);
         }
     }
 
@@ -241,6 +281,12 @@ public class MainTeleOp extends OpMode
         }
 
         return drivePower;
+    }
+
+    // Convert Degrees to motor encoder steps
+    int degToEncoder(int degrees)
+    {
+        return (int) Math.round((double) degrees * 1450 / 360);
     }
 
     // Input scale from NXTTeleOp for more accuracy in lower ranges
