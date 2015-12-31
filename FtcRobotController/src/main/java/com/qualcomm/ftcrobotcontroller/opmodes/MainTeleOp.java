@@ -45,11 +45,15 @@ public class MainTeleOp extends OpMode
 
     // States
     boolean     manualMode;
+    boolean     manualPimp;
     boolean     fieldOrientation;
 
     // Constants
     final boolean RIGHT = true;
     final boolean LEFT = false;
+
+    final int PIMP_UP = 60; // Rotation in degrees
+    final int PIMP_DOWN = 580; // Rotation in degrees
 
     @Override
     public void init()
@@ -141,6 +145,15 @@ public class MainTeleOp extends OpMode
             telemetry.addData("Field Orientation: ", "left");
         }
 
+        if (gamepad1.x)
+        {
+            manualPimp = false;
+        }
+        else if (gamepad1.y)
+        {
+            manualPimp = true;
+        }
+
 
         // Switch Between controlling the rangles and the spools
         if (!manualMode)
@@ -173,11 +186,6 @@ public class MainTeleOp extends OpMode
             leftRangle.setPower(-scaleInput(gamepad2.left_stick_y));
         }
 
-        // Drive Control
-        double[] drivePower = getDrivePower(-scaleInput(gamepad1.left_stick_x), -scaleInput(gamepad1.left_stick_y));
-        leftDrive.setPower(drivePower[0]);
-        rightDrive.setPower(drivePower[1]);
-
         // Brush Control
         if (gamepad1.right_trigger > 0)
             brush.setPower(gamepad1.right_trigger);
@@ -186,12 +194,26 @@ public class MainTeleOp extends OpMode
         else
             brush.setPower(0);
 
-        // Pimp Wheel Control
-        if (Math.abs(drivePower[0] - drivePower[1]) > 0.75)
-            pimpWheel.setTargetPosition(degToEncoder(360));
-        else
-            pimpWheel.setTargetPosition(degToEncoder(0));
+        // Drive Control
+        double[] drivePower = getDrivePower(-scaleInput(gamepad1.left_stick_x), -scaleInput(gamepad1.left_stick_y));
 
+        // Pimp Wheel Control
+        if (manualPimp)
+        {
+            pimpWheel.setTargetPosition(PIMP_DOWN);
+        }
+        else
+        {
+            if (Math.abs(drivePower[0] - drivePower[1]) > 0.5)
+                pimpWheel.setTargetPosition(degToEncoder(PIMP_DOWN));
+            else
+            {
+                pimpWheel.setTargetPosition(degToEncoder(PIMP_UP));
+            }
+        }
+
+        leftDrive.setPower(drivePower[0]);
+        rightDrive.setPower(drivePower[1]);
 
         telemetry.addData("Manual Rangle Control: ", manualMode);
 
