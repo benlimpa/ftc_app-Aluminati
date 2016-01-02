@@ -43,6 +43,15 @@ public class MainTeleOp extends OpMode
     Servo       leftBrushArmServo;
     Servo       rightBrushArmServo;
 
+    double      leftBoxServoPos;
+    double      rightBoxServoPos;
+
+    double      leftClawServoPos;
+    double      rightClawServoPos;
+
+    double      leftBrushArmServoPos;
+    double      rightBrushArmServoPos;
+
     // States
     boolean     manualMode;
     boolean     manualPimp;
@@ -54,6 +63,21 @@ public class MainTeleOp extends OpMode
 
     final int PIMP_UP = 60; // Rotation in degrees
     final int PIMP_DOWN = 580; // Rotation in degrees
+
+    final double L_BOX_UP = 0;
+    final double L_BOX_DOWN = 0.6;
+    final double R_BOX_UP = 0.6;
+    final double R_BOX_DOWN = 0;
+
+    final double L_CLAW_UP = 0.1;
+    final double L_CLAW_DOWN = 0.7;
+    final double R_CLAW_UP = 1;
+    final double R_CLAW_DOWN = 0.35;
+
+    final double L_BRUSH_BAR_UP = 0.25;
+    final double L_BRUSH_BAR_DOWN = 0.8;
+    final double R_BRUSH_BAR_UP = 0.53;
+    final double R_BRUSH_BAR_DOWN = 0.2;
 
     @Override
     public void init()
@@ -110,8 +134,14 @@ public class MainTeleOp extends OpMode
     {
 
         // Set Servos to default positions
-        leftBoxServo.setPosition(0);
-        rightBoxServo.setPosition(0.6);
+        leftBoxServoPos = L_BOX_UP;
+        rightBoxServoPos = R_BOX_UP;
+
+        leftClawServoPos = L_CLAW_UP;
+        rightClawServoPos = R_CLAW_UP;
+
+        leftBrushArmServoPos = L_BRUSH_BAR_DOWN;
+        rightBrushArmServoPos = R_BRUSH_BAR_DOWN;
     }
 
     @Override
@@ -224,52 +254,62 @@ public class MainTeleOp extends OpMode
         {
             if (gamepad2.x)
             {
-                rightBoxServo.setPosition(0); // down
-                telemetry.addData("Right Box Servo: ", 0);
+                rightBoxServoPos = R_BOX_DOWN;
+                telemetry.addData("Right Box Servo: ", R_BOX_DOWN);
             }
             else if (gamepad2.y)
             {
-                rightBoxServo.setPosition(0.6); // up
-                telemetry.addData("Right Box Servo: ", 0.6);
+                rightBoxServoPos = R_BOX_UP;
+                telemetry.addData("Right Box Servo: ", R_BOX_UP);
             }
         }
         else if (fieldOrientation == LEFT)
         {
             if (gamepad2.x)
             {
-                leftBoxServo.setPosition(0.6); // down
-                telemetry.addData("Left Box Servo: ", 0.6);
+                leftBoxServoPos = L_BOX_DOWN;
+                telemetry.addData("Left Box Servo: ", L_BOX_DOWN);
             }
             else if (gamepad2.y)
             {
-                leftBoxServo.setPosition(0); // up
-                telemetry.addData("Left Box Servo: ", 0);
+                leftBoxServoPos = L_BOX_UP;
+                telemetry.addData("Left Box Servo: ", L_BOX_UP);
             }
         }
 
         // Claws
         if (gamepad2.right_bumper) // up
         {
-            leftClawServo.setPosition(0.1);
-            rightClawServo.setPosition(1);
+            leftClawServoPos = L_CLAW_UP;
+            rightClawServoPos = R_CLAW_UP;
         }
         else if (gamepad2.right_trigger > 0.1) // down
         {
-            leftClawServo.setPosition(0.7);
-            rightClawServo.setPosition(0.35);
+            leftClawServoPos = L_CLAW_DOWN;
+            rightClawServoPos = R_CLAW_DOWN;
         }
 
         // Brush Arm
         if (gamepad1.left_bumper) // up
         {
-            leftBrushArmServo.setPosition(0.25);
-            rightBrushArmServo.setPosition(0.53);
+            leftBrushArmServoPos = L_BRUSH_BAR_UP;
+            rightBrushArmServoPos = R_BRUSH_BAR_UP;
         }
         else if (gamepad1.left_trigger > 0.1) // down
         {
-            leftBrushArmServo.setPosition(0.8);
-            rightBrushArmServo.setPosition(0.2);
+            leftBrushArmServoPos = L_BRUSH_BAR_DOWN;
+            rightBrushArmServoPos = R_BRUSH_BAR_DOWN;
         }
+
+        // Update Servo Positions (servos must be sent a position, otherwise they will move to default)
+        leftBoxServo.setPosition(leftBoxServoPos);
+        rightBoxServo.setPosition(rightBoxServoPos);
+
+        leftClawServo.setPosition(leftClawServoPos);
+        rightClawServo.setPosition(rightClawServoPos);
+
+        leftBrushArmServo.setPosition(leftBrushArmServoPos);
+        rightBrushArmServo.setPosition(rightBrushArmServoPos);
     }
 
     @Override
