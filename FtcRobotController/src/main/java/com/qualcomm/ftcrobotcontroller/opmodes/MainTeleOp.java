@@ -52,6 +52,8 @@ public class MainTeleOp extends OpMode
     double      leftBrushArmServoPos;
     double      rightBrushArmServoPos;
 
+    int pimpWheelTarget;
+
     // States
     boolean     manualMode;
     boolean     manualPimp;
@@ -61,8 +63,8 @@ public class MainTeleOp extends OpMode
     final boolean RIGHT = true;
     final boolean LEFT = false;
 
-    final int PIMP_UP = 60; // Rotation in degrees
-    final int PIMP_DOWN = 580; // Rotation in degrees
+    final int PIMP_UP = 0; // Rotation in degrees
+    final int PIMP_DOWN = 520; // Rotation in degrees
 
     final double L_BOX_UP = 0;
     final double L_BOX_DOWN = 0.6;
@@ -85,6 +87,7 @@ public class MainTeleOp extends OpMode
         // States
         manualMode = false;
         fieldOrientation = RIGHT;
+        pimpWheelTarget = 0;
 
         // Controllers
         motorControl1 = hardwareMap.dcMotorController.get("MotorControl1");
@@ -230,15 +233,15 @@ public class MainTeleOp extends OpMode
         // Pimp Wheel Control
         if (manualPimp)
         {
-            pimpWheel.setTargetPosition(PIMP_DOWN);
+            pimpWheelTarget = degToEncoder(PIMP_DOWN);
         }
         else
         {
             if (Math.abs(drivePower[0] - drivePower[1]) > 0.5)
-                pimpWheel.setTargetPosition(degToEncoder(PIMP_DOWN));
+                pimpWheelTarget = degToEncoder(PIMP_DOWN);
             else
             {
-                pimpWheel.setTargetPosition(degToEncoder(PIMP_UP));
+                pimpWheelTarget = degToEncoder(PIMP_UP);
             }
         }
 
@@ -300,6 +303,9 @@ public class MainTeleOp extends OpMode
             leftBrushArmServoPos = L_BRUSH_BAR_DOWN;
             rightBrushArmServoPos = R_BRUSH_BAR_DOWN;
         }
+
+        // Update Encoded Motor Positions
+        pimpWheel.setTargetPosition(pimpWheelTarget);
 
         // Update Servo Positions (servos must be sent a position, otherwise they will move to default)
         leftBoxServo.setPosition(leftBoxServoPos);
