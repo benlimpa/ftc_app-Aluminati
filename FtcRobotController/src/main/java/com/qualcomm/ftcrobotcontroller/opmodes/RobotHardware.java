@@ -15,36 +15,65 @@ import com.qualcomm.robotcore.hardware.ServoController;
 public class RobotHardware extends OpMode {
 
     // Controllers
-    DcMotorController[] motorControlrs;
+    private DcMotorController[] motorControlrs;
 
-    ServoController   servoControlr;
+    private ServoController   servoControlr;
 
     // Motors
-    DcMotor leftDrive;
-    DcMotor rightDrive;
+    private DcMotor leftDrive;
+    private DcMotor rightDrive;
 
-    DcMotor pimpWheel;
+    private DcMotor pimpWheel;
 
-    DcMotor leftSpool;
-    DcMotor rightSpool;
+    private DcMotor leftSpool;
+    private DcMotor rightSpool;
 
-    DcMotor leftRangle;
-    DcMotor rightRangle;
+    private DcMotor leftRangle;
+    private DcMotor rightRangle;
 
-    DcMotor brush;
+    private DcMotor brush;
 
     // Servos
-    Servo leftBoxServo;
-    Servo rightBoxServo;
+    private Servo leftBoxServo;
+    private Servo rightBoxServo;
 
-    Servo leftClawServo;
-    Servo rightClawServo;
+    private Servo leftClawServo;
+    private Servo rightClawServo;
 
-    Servo leftBrushArmServo;
-    Servo rightBrushArmServo;
+    private Servo leftBrushArmServo;
+    private Servo rightBrushArmServo;
 
     // Miscellaneous
     HashSet<String> unfoundComponents;
+    boolean driveEncoders;
+    
+    // Constants
+    protected final boolean RIGHT = true;
+    protected final boolean LEFT = false;
+
+    protected final int PIMP_UP = 60; // Rotation in degrees
+    protected final int PIMP_DOWN = 580; // Rotation in degrees
+
+    protected final double L_BOX_UP = 0;
+    protected final double L_BOX_DOWN = 0.6;
+    protected final double R_BOX_UP = 0.6;
+    protected final double R_BOX_DOWN = 0;
+
+    protected final double L_CLAW_UP = 0.1;
+    protected final double L_CLAW_DOWN = 0.7;
+    protected final double R_CLAW_UP = 1;
+    protected final double R_CLAW_DOWN = 0.35;
+
+    protected final double L_BRUSH_BAR_UP = 0.25;
+    protected final double L_BRUSH_BAR_DOWN = 0.8;
+    protected final double R_BRUSH_BAR_UP = 0.53;
+    protected final double R_BRUSH_BAR_DOWN = 0.2;
+
+    public RobotHardware(boolean driveEncoders)
+    {
+        this.driveEncoders = driveEncoders;
+    }
+
 
     @Override
     public void init()
@@ -90,6 +119,9 @@ public class RobotHardware extends OpMode {
         try
         {
             leftDrive = hardwareMap.dcMotor.get("leftDrive");
+
+            if (leftDrive != null && driveEncoders)
+                leftDrive.setChannelMode(DcMotorController.RunMode.RUN_TO_POSITION);
         }
         catch (Exception e)
         {
@@ -102,7 +134,11 @@ public class RobotHardware extends OpMode {
             rightDrive = hardwareMap.dcMotor.get("rightDrive");
 
             if (rightDrive != null)
+            {
                 rightDrive.setDirection(DcMotor.Direction.REVERSE);
+                if (driveEncoders)
+                    rightDrive.setChannelMode(DcMotorController.RunMode.RUN_TO_POSITION);
+            }
         }
         catch (Exception e)
         {
@@ -243,11 +279,16 @@ public class RobotHardware extends OpMode {
             unfoundComponents.add("rightClawServo");
             DbgLog.logStacktrace(e);
         }
+
+        /*
+         *
+         */
     }
 
     @Override
     public void start()
     {
+        // Set Servos to default position
 
     }
 

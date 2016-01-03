@@ -5,5 +5,10 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
  */
 public class RobotTelemetry extends RobotHardware
 {
+    public RobotTelemetry(boolean driveEncoders)
+    {
+        super(driveEncoders);
+    }
+
 
 }
