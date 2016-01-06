@@ -52,19 +52,21 @@ public class MainTeleOp extends OpMode
     double      leftBrushArmServoPos;
     double      rightBrushArmServoPos;
 
+    int brushTime;
+    int pimpWheelZero; // Default PimpWheel Position
     int pimpWheelTarget;
 
     // States
     boolean     manualMode;
     boolean     manualPimp;
+    boolean     pimpWheelAdjust;
     boolean     fieldOrientation;
 
     // Constants
     final boolean RIGHT = true;
     final boolean LEFT = false;
 
-    final int PIMP_UP = 0; // Rotation in degrees
-    final int PIMP_DOWN = 520; // Rotation in degrees
+    final int PIMP_INTERVAL = 360;
 
     final double L_BOX_UP = 0;
     final double L_BOX_DOWN = 0.6;
@@ -72,22 +74,25 @@ public class MainTeleOp extends OpMode
     final double R_BOX_DOWN = 0;
 
     final double L_CLAW_UP = 0.1;
-    final double L_CLAW_DOWN = 0.7;
+    final double L_CLAW_DOWN = 0.75;
     final double R_CLAW_UP = 1;
-    final double R_CLAW_DOWN = 0.35;
+    final double R_CLAW_DOWN = 0.30;
 
     final double L_BRUSH_BAR_UP = 0.25;
-    final double L_BRUSH_BAR_DOWN = 0.8;
-    final double R_BRUSH_BAR_UP = 0.53;
-    final double R_BRUSH_BAR_DOWN = 0.2;
+    final double L_BRUSH_BAR_DOWN = 1.0;
+    final double R_BRUSH_BAR_UP = 0.50;
+    final double R_BRUSH_BAR_DOWN = 0.15;
 
     @Override
     public void init()
     {
         // States
+        pimpWheelAdjust = false;
         manualMode = false;
         fieldOrientation = RIGHT;
         pimpWheelTarget = 0;
+        pimpWheelZero = 0;
+        brushTime = 0;
 
         // Controllers
         motorControl1 = hardwareMap.dcMotorController.get("MotorControl1");
@@ -150,6 +155,8 @@ public class MainTeleOp extends OpMode
     @Override
     public void loop()
     {
+
+
         // Change Modes:
         if (gamepad2.dpad_down)
         {
@@ -161,32 +168,27 @@ public class MainTeleOp extends OpMode
         }
 
         if (gamepad2.dpad_right)
-        {
             fieldOrientation = RIGHT;
-        }
         else if (gamepad2.dpad_left)
-        {
             fieldOrientation = LEFT;
-        }
 
         if (fieldOrientation == RIGHT)
-        {
             telemetry.addData("Field Orientation: ", "right");
-        }
         else if (fieldOrientation == LEFT)
-        {
             telemetry.addData("Field Orientation: ", "left");
-        }
 
         if (gamepad1.x)
-        {
             manualPimp = false;
-        }
         else if (gamepad1.y)
-        {
             manualPimp = true;
-        }
 
+        if (gamepad1.dpad_right)
+            pimpWheelAdjust = true;
+        else if (gamepad1.dpad_left)
+            pimpWheelAdjust = false;
+
+        telemetry.addData("Manual Pimp Wheel Adjust: ", pimpWheelAdjust);
+        telemetry.addData("Pimp Wheel Zero: ", pimpWheelZero);
 
         // Switch Between controlling the rangles and the spools
         if (!manualMode)
@@ -220,6 +222,14 @@ public class MainTeleOp extends OpMode
         }
 
         // Brush Control
+        if (brushTime > 0)
+        {
+            brush.setPower(-0.3);
+            brushTime--;
+        }
+        else
+            brush.setPower(0);
+
         if (gamepad1.right_trigger > 0)
             brush.setPower(gamepad1.right_trigger);
         else if (gamepad1.right_bumper)
@@ -231,17 +241,33 @@ public class MainTeleOp extends OpMode
         double[] drivePower = getDrivePower(-scaleInput(gamepad1.left_stick_x), -scaleInput(gamepad1.left_stick_y));
 
         // Pimp Wheel Control
-        if (manualPimp)
+        if (pimpWheelAdjust)
         {
-            pimpWheelTarget = degToEncoder(PIMP_DOWN);
+            if (gamepad1.b)
+            {
+                pimpWheelZero += degToEncoder(1);
+                pimpWheelTarget = pimpWheelZero;
+            }
+            else if (gamepad1.a)
+            {
+                pimpWheelZero -= degToEncoder(1);
+                pimpWheelTarget = pimpWheelZero;
+            }
         }
         else
         {
-            if (Math.abs(drivePower[0] - drivePower[1]) > 0.5)
-                pimpWheelTarget = degToEncoder(PIMP_DOWN);
+            if (manualPimp)
+            {
+                pimpWheelTarget = pimpWheelZero + degToEncoder(PIMP_INTERVAL);
+            }
             else
             {
-                pimpWheelTarget = degToEncoder(PIMP_UP);
+                if (Math.abs(drivePower[0] - drivePower[1]) > 0.5)
+                    pimpWheelTarget = pimpWheelZero + degToEncoder(PIMP_INTERVAL);
+                else
+                {
+                    pimpWheelTarget = pimpWheelZero;
+                }
             }
         }
 
@@ -281,24 +307,25 @@ public class MainTeleOp extends OpMode
         }
 
         // Claws
-        if (gamepad2.right_bumper) // up
+        if (gamepad1.left_bumper) // up
         {
             leftClawServoPos = L_CLAW_UP;
             rightClawServoPos = R_CLAW_UP;
         }
-        else if (gamepad2.right_trigger > 0.1) // down
+        else if (gamepad1.left_trigger > 0.1) // down
         {
             leftClawServoPos = L_CLAW_DOWN;
             rightClawServoPos = R_CLAW_DOWN;
         }
 
         // Brush Arm
-        if (gamepad1.left_bumper) // up
+        if (gamepad1.dpad_up) // up
         {
             leftBrushArmServoPos = L_BRUSH_BAR_UP;
             rightBrushArmServoPos = R_BRUSH_BAR_UP;
+            brushTime = 3;
         }
-        else if (gamepad1.left_trigger > 0.1) // down
+        else if (gamepad1.dpad_down) // down
         {
             leftBrushArmServoPos = L_BRUSH_BAR_DOWN;
             rightBrushArmServoPos = R_BRUSH_BAR_DOWN;
