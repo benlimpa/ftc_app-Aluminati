@@ -43,9 +43,18 @@ public class RobotHardware extends OpMode {
     private Servo leftBrushArmServo;
     private Servo rightBrushArmServo;
 
+    private double leftBoxServoPos;
+    private double rightBoxServoPos;
+
+    private double leftClawServoPos;
+    private double rightClawServoPos;
+
+    private double leftBrushArmServoPos;
+    private double rightBrushArmServoPos;
+
     // Miscellaneous
-    HashSet<String> unfoundComponents;
-    boolean driveEncoders;
+    private HashSet<String> unmappedComponents;
+    private boolean driveEncoders;
     
     // Constants
     protected final boolean RIGHT = true;
@@ -78,7 +87,7 @@ public class RobotHardware extends OpMode {
     @Override
     public void init()
     {
-        unfoundComponents = new HashSet<String>();
+        unmappedComponents = new HashSet<String>();
 
         //
         // Map Robot Components
@@ -94,7 +103,7 @@ public class RobotHardware extends OpMode {
             }
             catch (Exception e)
             {
-                unfoundComponents.add("MotorControl" + (i + 1));
+                unmappedComponents.add("MotorControl" + (i + 1));
                 DbgLog.logStacktrace(e);
             }
             
@@ -110,7 +119,7 @@ public class RobotHardware extends OpMode {
         }
         catch (Exception e)
         {
-            unfoundComponents.add("ServoControl");
+            unmappedComponents.add("ServoControl");
             DbgLog.logStacktrace(e);
         }
         
@@ -125,7 +134,7 @@ public class RobotHardware extends OpMode {
         }
         catch (Exception e)
         {
-            unfoundComponents.add("leftDrive");
+            unmappedComponents.add("leftDrive");
             DbgLog.logStacktrace(e);
         }
 
@@ -142,7 +151,7 @@ public class RobotHardware extends OpMode {
         }
         catch (Exception e)
         {
-            unfoundComponents.add("rightDrive");
+            unmappedComponents.add("rightDrive");
             DbgLog.logStacktrace(e);
         }
 
@@ -158,7 +167,7 @@ public class RobotHardware extends OpMode {
         }
         catch (Exception e)
         {
-            unfoundComponents.add("pimpWheel");
+            unmappedComponents.add("pimpWheel");
             DbgLog.logStacktrace(e);
         }
 
@@ -168,7 +177,7 @@ public class RobotHardware extends OpMode {
         }
         catch (Exception e)
         {
-            unfoundComponents.add("leftSpool");
+            unmappedComponents.add("leftSpool");
             DbgLog.logStacktrace(e);
         }
         
@@ -181,7 +190,7 @@ public class RobotHardware extends OpMode {
         }
         catch (Exception e)
         {
-            unfoundComponents.add("rightSpool");
+            unmappedComponents.add("rightSpool");
             DbgLog.logStacktrace(e);
         }
 
@@ -191,7 +200,7 @@ public class RobotHardware extends OpMode {
         }
         catch (Exception e)
         {
-            unfoundComponents.add("leftRangle");
+            unmappedComponents.add("leftRangle");
             DbgLog.logStacktrace(e);
         }
 
@@ -204,7 +213,7 @@ public class RobotHardware extends OpMode {
         }
         catch (Exception e)
         {
-            unfoundComponents.add("rightRangle");
+            unmappedComponents.add("rightRangle");
             DbgLog.logStacktrace(e);
         }
 
@@ -214,7 +223,7 @@ public class RobotHardware extends OpMode {
         }
         catch (Exception e)
         {
-            unfoundComponents.add("brush");
+            unmappedComponents.add("brush");
             DbgLog.logStacktrace(e);
         }
         
@@ -226,7 +235,7 @@ public class RobotHardware extends OpMode {
         }
         catch (Exception e)
         {
-            unfoundComponents.add("leftBoxServo");
+            unmappedComponents.add("leftBoxServo");
             DbgLog.logStacktrace(e);
         }
 
@@ -236,7 +245,7 @@ public class RobotHardware extends OpMode {
         }
         catch (Exception e)
         {
-            unfoundComponents.add("rightBoxServo");
+            unmappedComponents.add("rightBoxServo");
             DbgLog.logStacktrace(e);
         }
 
@@ -246,7 +255,7 @@ public class RobotHardware extends OpMode {
         }
         catch (Exception e)
         {
-            unfoundComponents.add("leftBrushArmServo");
+            unmappedComponents.add("leftBrushArmServo");
             DbgLog.logStacktrace(e);
         }
 
@@ -256,7 +265,7 @@ public class RobotHardware extends OpMode {
         }
         catch (Exception e)
         {
-            unfoundComponents.add("rightBrushArmServo");
+            unmappedComponents.add("rightBrushArmServo");
             DbgLog.logStacktrace(e);
         }
 
@@ -266,7 +275,7 @@ public class RobotHardware extends OpMode {
         }
         catch (Exception e)
         {
-            unfoundComponents.add("leftClawServo");
+            unmappedComponents.add("leftClawServo");
             DbgLog.logStacktrace(e);
         }
 
@@ -276,7 +285,7 @@ public class RobotHardware extends OpMode {
         }
         catch (Exception e)
         {
-            unfoundComponents.add("rightClawServo");
+            unmappedComponents.add("rightClawServo");
             DbgLog.logStacktrace(e);
         }
 
@@ -284,6 +293,8 @@ public class RobotHardware extends OpMode {
          *
          */
     }
+
+    public HashSet<String> getUnmappedComponents() {return unmappedComponents;}
 
     @Override
     public void start()
@@ -296,6 +307,16 @@ public class RobotHardware extends OpMode {
     public void loop()
     {
 
+
+        // Update Servo Positions (servos must be sent a position, otherwise they will move to default)
+        leftBoxServo.setPosition(leftBoxServoPos);
+        rightBoxServo.setPosition(rightBoxServoPos);
+
+        leftClawServo.setPosition(leftClawServoPos);
+        rightClawServo.setPosition(rightClawServoPos);
+
+        leftBrushArmServo.setPosition(leftBrushArmServoPos);
+        rightBrushArmServo.setPosition(rightBrushArmServoPos);
     }
 
     @Override
