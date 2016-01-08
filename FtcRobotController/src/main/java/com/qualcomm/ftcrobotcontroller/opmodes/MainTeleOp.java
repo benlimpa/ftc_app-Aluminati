@@ -66,7 +66,7 @@ public class MainTeleOp extends OpMode
     final boolean RIGHT = true;
     final boolean LEFT = false;
 
-    final int PIMP_INTERVAL = 360;
+    final int PIMP_INTERVAL = 525;
 
     final double L_BOX_UP = 0;
     final double L_BOX_DOWN = 0.6;
@@ -79,8 +79,10 @@ public class MainTeleOp extends OpMode
     final double R_CLAW_DOWN = 0.30;
 
     final double L_BRUSH_BAR_UP = 0.25;
+    final double L_BRUSH_BAR_MIDDLE = 0.625;
     final double L_BRUSH_BAR_DOWN = 1.0;
     final double R_BRUSH_BAR_UP = 0.50;
+    final double R_BRUSH_BAR_MIDDLE = 0.325;
     final double R_BRUSH_BAR_DOWN = 0.15;
 
     @Override
@@ -324,6 +326,11 @@ public class MainTeleOp extends OpMode
             leftBrushArmServoPos = L_BRUSH_BAR_UP;
             rightBrushArmServoPos = R_BRUSH_BAR_UP;
             brushTime = 3;
+        }
+        else if (gamepad1.right_stick_button)
+        {
+            leftBrushArmServoPos = L_BRUSH_BAR_MIDDLE;
+            rightBrushArmServoPos = R_BRUSH_BAR_MIDDLE;
         }
         else if (gamepad1.dpad_down) // down
         {
