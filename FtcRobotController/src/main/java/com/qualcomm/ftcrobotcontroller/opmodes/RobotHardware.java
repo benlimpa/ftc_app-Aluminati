@@ -1,5 +1,6 @@
 package com.qualcomm.ftcrobotcontroller.opmodes;
 
+import java.util.HashMap;
 import java.util.HashSet;
 
 import com.qualcomm.ftccommon.DbgLog;
@@ -20,6 +21,8 @@ public class RobotHardware extends OpMode {
     private ServoController   servoControlr;
 
     // Motors
+    private HashMap<String, DcMotor> motors;
+    /*
     private DcMotor leftDrive;
     private DcMotor rightDrive;
 
@@ -32,8 +35,10 @@ public class RobotHardware extends OpMode {
     private DcMotor rightRangle;
 
     private DcMotor brush;
-
+*/
     // Servos
+    private HashMap<String, Servo> servos;
+    
     private Servo leftBoxServo;
     private Servo rightBoxServo;
 
@@ -54,6 +59,7 @@ public class RobotHardware extends OpMode {
 
     // Miscellaneous
     private HashSet<String> unmappedComponents;
+    private HashSet<String> otherErrors;
     private boolean driveEncoders;
     
     // Constants
@@ -88,7 +94,7 @@ public class RobotHardware extends OpMode {
     public void init()
     {
         unmappedComponents = new HashSet<String>();
-
+        motors = new HashMap<String, DcMotor>();
         //
         // Map Robot Components
         //
@@ -124,7 +130,109 @@ public class RobotHardware extends OpMode {
         }
         
         // Motors
+        try
+        {
+            motors.put("leftDrive", hardwareMap.dcMotor.get("leftDrive"));
+            
+            if (motors.get("leftDrive") != null && driveEncoders)
+                motors.get("leftDrive").setChannelMode(DcMotorController.RunMode.RUN_TO_POSITION);
+        }
+        catch (Exception e)
+        {
+            unmappedComponents.add("leftDrive");
+            DbgLog.logStacktrace(e);
+        }
+
+        try
+        {
+            motors.put("rightDrive", hardwareMap.dcMotor.get("rightDrive"));
+
+            if (motors.get("rightDrive") != null)
+            {
+                motors.get("rightDrive").setDirection(DcMotor.Direction.REVERSE);
+                if (driveEncoders)
+                    motors.get("rightDrive").setChannelMode(DcMotorController.RunMode.RUN_TO_POSITION);
+            }
+        }
+        catch (Exception e)
+        {
+            unmappedComponents.add("rightDrive");
+            DbgLog.logStacktrace(e);
+        }
+
+        try
+        {
+            motors.put("pimpWheel", hardwareMap.dcMotor.get("pimpWheel"));
+
+            if (motors.get("pimpWheel") != null)
+            {
+                motors.get("pimpWheel").setChannelMode(DcMotorController.RunMode.RUN_TO_POSITION);
+                motors.get("pimpWheel").setPower(1);
+            }
+        }
+        catch (Exception e)
+        {
+            unmappedComponents.add("pimpWheel");
+            DbgLog.logStacktrace(e);
+        }
+
+        try
+        {
+            motors.put("leftSpool", hardwareMap.dcMotor.get("leftSpool"));
+        }
+        catch (Exception e)
+        {
+            unmappedComponents.add("leftSpool");
+            DbgLog.logStacktrace(e);
+        }
+
+        try
+        {
+            motors.put("rightSpool", hardwareMap.dcMotor.get("rightSpool"));
+
+            if (motors.get("rightSpool") != null)
+                motors.get("rightSpool").setDirection(DcMotor.Direction.REVERSE);
+        }
+        catch (Exception e)
+        {
+            unmappedComponents.add("rightSpool");
+            DbgLog.logStacktrace(e);
+        }
+
+        try
+        {
+            motors.put("leftRangle", hardwareMap.dcMotor.get("leftRangle"));
+        }
+        catch (Exception e)
+        {
+            unmappedComponents.add("leftRangle");
+            DbgLog.logStacktrace(e);
+        }
+
+        try
+        {
+            motors.put("rightRangle", hardwareMap.dcMotor.get("rightRangle"));
+
+            if (motors.get("rightRangle") != null)
+                motors.get("rightRangle").setDirection(DcMotor.Direction.REVERSE);
+        }
+        catch (Exception e)
+        {
+            unmappedComponents.add("rightRangle");
+            DbgLog.logStacktrace(e);
+        }
+
+        try
+        {
+            motors.put("brush", hardwareMap.dcMotor.get("rightRangle"));
+        }
+        catch (Exception e)
+        {
+            unmappedComponents.add("brush");
+            DbgLog.logStacktrace(e);
+        }
         
+        /*
         try
         {
             leftDrive = hardwareMap.dcMotor.get("leftDrive");
@@ -226,9 +334,70 @@ public class RobotHardware extends OpMode {
             unmappedComponents.add("brush");
             DbgLog.logStacktrace(e);
         }
+        */
         
         // Servos
-        
+
+        try
+        {
+            servos.put("leftBoxServo", hardwareMap.servo.get("leftBoxServo"));
+        }
+        catch (Exception e)
+        {
+            unmappedComponents.add("leftBoxServo");
+            DbgLog.logStacktrace(e);
+        }
+
+        try
+        {
+            servos.put("rightBoxServo", hardwareMap.servo.get("rightBoxServo"));
+        }
+        catch (Exception e)
+        {
+            unmappedComponents.add("rightBoxServo");
+            DbgLog.logStacktrace(e);
+        }
+
+        try
+        {
+            servos.put("leftBrushArmServo", hardwareMap.servo.get("leftBrushArmServo"));
+        }
+        catch (Exception e)
+        {
+            unmappedComponents.add("leftBrushArmServo");
+            DbgLog.logStacktrace(e);
+        }
+
+        try
+        {
+            servos.put("rightBrushArmServo", hardwareMap.servo.get("rightBrushArmServo"));
+        }
+        catch (Exception e)
+        {
+            unmappedComponents.add("rightBrushArmServo");
+            DbgLog.logStacktrace(e);
+        }
+
+        try
+        {
+            servos.put("leftClawServo", hardwareMap.servo.get("leftClawServo"));
+        }
+        catch (Exception e)
+        {
+            unmappedComponents.add("leftClawServo");
+            DbgLog.logStacktrace(e);
+        }
+
+        try
+        {
+            servos.put("rightClawServo", hardwareMap.servo.get("rightClawServo"));
+        }
+        catch (Exception e)
+        {
+            unmappedComponents.add("rightClawServo");
+            DbgLog.logStacktrace(e);
+        }
+        /*
         try
         {
             leftBoxServo = hardwareMap.servo.get("leftBoxServo");
@@ -288,35 +457,66 @@ public class RobotHardware extends OpMode {
             unmappedComponents.add("rightClawServo");
             DbgLog.logStacktrace(e);
         }
-
+*/
         /*
          *
          */
     }
 
+    // Getters
     public HashSet<String> getUnmappedComponents() {return unmappedComponents;}
+    public HashSet<String> getOtherErrors() {return otherErrors;}
+    public double[] getServoVals()
+    {
+        double[] servoVals = new double[6];
+
+        servoVals[0] = leftBoxServoPos;
+        servoVals[1] = rightBoxServoPos;
+        servoVals[2] = leftClawServoPos;
+        servoVals[3] = rightClawServoPos;
+        servoVals[4] = leftBrushArmServoPos;
+        servoVals[5] = rightBrushArmServoPos;
+        return servoVals;
+    }
+    
+    // Setters
+    
+    protected void setMotorPower(String motorName, double power)
+    {
+        
+    }
+    
+    protected void setServoVal(String servoName, double servoPos)
+    {
+        
+    }
 
     @Override
     public void start()
     {
-        // Set Servos to default position
+        // Set Servos to default positions
+        leftBoxServoPos = L_BOX_UP;
+        rightBoxServoPos = R_BOX_UP;
 
+        leftClawServoPos = L_CLAW_UP;
+        rightClawServoPos = R_CLAW_UP;
+
+        leftBrushArmServoPos = L_BRUSH_BAR_DOWN;
+        rightBrushArmServoPos = R_BRUSH_BAR_DOWN;
     }
 
     @Override
     public void loop()
     {
-
-
         // Update Servo Positions (servos must be sent a position, otherwise they will move to default)
-        leftBoxServo.setPosition(leftBoxServoPos);
-        rightBoxServo.setPosition(rightBoxServoPos);
+        servos.get("leftBoxServo").setPosition(leftBoxServoPos);
+        servos.get("rightBoxServo").setPosition(rightBoxServoPos);
 
-        leftClawServo.setPosition(leftClawServoPos);
-        rightClawServo.setPosition(rightClawServoPos);
+        servos.get("leftClawServo").setPosition(leftClawServoPos);
+        servos.get("rightClawServo").setPosition(rightClawServoPos);
 
-        leftBrushArmServo.setPosition(leftBrushArmServoPos);
-        rightBrushArmServo.setPosition(rightBrushArmServoPos);
+        servos.get("leftBrushArmServo").setPosition(leftBrushArmServoPos);
+        servos.get("rightBrushArmServo").setPosition(rightBrushArmServoPos);
     }
 
     @Override
