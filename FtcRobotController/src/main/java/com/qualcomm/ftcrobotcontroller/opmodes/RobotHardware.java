@@ -21,41 +21,14 @@ public class RobotHardware extends OpMode {
     private ServoController   servoControlr;
 
     // Motors
-    private HashMap<String, DcMotor> motors;
-    /*
-    private DcMotor leftDrive;
-    private DcMotor rightDrive;
+    private HashMap<String, DcMotor> nonEncodedMotors;
+    private HashMap<String, DcMotor> encodedMotors;
+    private HashMap<String, Double> motorPower;
+    private HashMap<String, Integer> motorPos;
 
-    private DcMotor pimpWheel;
-
-    private DcMotor leftSpool;
-    private DcMotor rightSpool;
-
-    private DcMotor leftRangle;
-    private DcMotor rightRangle;
-
-    private DcMotor brush;
-*/
     // Servos
     private HashMap<String, Servo> servos;
-    
-    private Servo leftBoxServo;
-    private Servo rightBoxServo;
-
-    private Servo leftClawServo;
-    private Servo rightClawServo;
-
-    private Servo leftBrushArmServo;
-    private Servo rightBrushArmServo;
-
-    private double leftBoxServoPos;
-    private double rightBoxServoPos;
-
-    private double leftClawServoPos;
-    private double rightClawServoPos;
-
-    private double leftBrushArmServoPos;
-    private double rightBrushArmServoPos;
+    private HashMap<String, Double> servoPos;
 
     // Miscellaneous
     private HashSet<String> unmappedComponents;
@@ -65,9 +38,6 @@ public class RobotHardware extends OpMode {
     // Constants
     protected final boolean RIGHT = true;
     protected final boolean LEFT = false;
-
-    protected final int PIMP_UP = 60; // Rotation in degrees
-    protected final int PIMP_DOWN = 580; // Rotation in degrees
 
     protected final double L_BOX_UP = 0;
     protected final double L_BOX_DOWN = 0.6;
@@ -80,21 +50,33 @@ public class RobotHardware extends OpMode {
     protected final double R_CLAW_DOWN = 0.35;
 
     protected final double L_BRUSH_BAR_UP = 0.25;
-    protected final double L_BRUSH_BAR_DOWN = 0.8;
-    protected final double R_BRUSH_BAR_UP = 0.53;
-    protected final double R_BRUSH_BAR_DOWN = 0.2;
+    protected final double L_BRUSH_BAR_MIDDLE = 0.625;
+    protected final double L_BRUSH_BAR_DOWN = 1.0;
+    protected final double R_BRUSH_BAR_UP = 0.50;
+    protected final double R_BRUSH_BAR_MIDDLE = 0.325;
+    protected final double R_BRUSH_BAR_DOWN = 0.15;
 
     public RobotHardware(boolean driveEncoders)
     {
         this.driveEncoders = driveEncoders;
     }
 
-
     @Override
-    public void init()
+    public void init(){} // does nothing
+
+    public void initComponents()
     {
         unmappedComponents = new HashSet<String>();
-        motors = new HashMap<String, DcMotor>();
+        otherErrors = new HashSet<String>();
+
+        nonEncodedMotors = new HashMap<String, DcMotor>();
+        encodedMotors = new HashMap<String, DcMotor>();
+        motorPower = new HashMap<String, Double>();
+        motorPos = new HashMap<String, Integer>();
+
+        servos = new HashMap<String, Servo>();
+        servoPos = new HashMap<String, Double>();
+
         //
         // Map Robot Components
         //
@@ -110,7 +92,7 @@ public class RobotHardware extends OpMode {
             catch (Exception e)
             {
                 unmappedComponents.add("MotorControl" + (i + 1));
-                DbgLog.logStacktrace(e);
+                //DbgLog.logStacktrace(e);
             }
             
             // Set Device Mode
@@ -126,402 +108,357 @@ public class RobotHardware extends OpMode {
         catch (Exception e)
         {
             unmappedComponents.add("ServoControl");
-            DbgLog.logStacktrace(e);
+            //DbgLog.logStacktrace(e);
         }
         
         // Motors
+        if (driveEncoders)
+        {
+            motorPower.put("leftDrive", 1.0);
+            motorPos.put("leftDrive", 0);
+
+            motorPower.put("rightDrive", 1.0);
+            motorPos.put("rightDrive", 0);
+        }
+        else
+        {
+            motorPower.put("leftDrive", 0.0);
+            motorPower.put("rightDrive", 0.0);
+        }
+        motorPower.put("pimpWheel", 1.0);
+        motorPos.put("pimpWheel", 0);
+
+        motorPower.put("leftSpool", 0.0);
+        motorPower.put("rightSpool", 0.0);
+
+        motorPower.put("leftRangle", 0.0);
+        motorPower.put("rightRangle", 0.0);
+
+        motorPower.put("brush", 0.0);
+
         try
         {
-            motors.put("leftDrive", hardwareMap.dcMotor.get("leftDrive"));
-            
-            if (motors.get("leftDrive") != null && driveEncoders)
-                motors.get("leftDrive").setChannelMode(DcMotorController.RunMode.RUN_TO_POSITION);
+            if (driveEncoders)
+            {
+                encodedMotors.put("leftDrive", hardwareMap.dcMotor.get("leftDrive"));
+
+                if (encodedMotors.get("leftDrive") != null)
+                {
+                    encodedMotors.get("leftDrive").setChannelMode(DcMotorController.RunMode.RUN_TO_POSITION);
+                    encodedMotors.get("leftDrive").setPower(1);
+                }
+            }
+            else
+            {
+                nonEncodedMotors.put("leftDrive", hardwareMap.dcMotor.get("leftDrive"));
+            }
+
         }
         catch (Exception e)
         {
             unmappedComponents.add("leftDrive");
-            DbgLog.logStacktrace(e);
+            //DbgLog.logStacktrace(e);
         }
 
         try
         {
-            motors.put("rightDrive", hardwareMap.dcMotor.get("rightDrive"));
+            if (driveEncoders) {
+                encodedMotors.put("rightDrive", hardwareMap.dcMotor.get("rightDrive"));
 
-            if (motors.get("rightDrive") != null)
-            {
-                motors.get("rightDrive").setDirection(DcMotor.Direction.REVERSE);
-                if (driveEncoders)
-                    motors.get("rightDrive").setChannelMode(DcMotorController.RunMode.RUN_TO_POSITION);
-            }
-        }
-        catch (Exception e)
-        {
-            unmappedComponents.add("rightDrive");
-            DbgLog.logStacktrace(e);
-        }
-
-        try
-        {
-            motors.put("pimpWheel", hardwareMap.dcMotor.get("pimpWheel"));
-
-            if (motors.get("pimpWheel") != null)
-            {
-                motors.get("pimpWheel").setChannelMode(DcMotorController.RunMode.RUN_TO_POSITION);
-                motors.get("pimpWheel").setPower(1);
-            }
-        }
-        catch (Exception e)
-        {
-            unmappedComponents.add("pimpWheel");
-            DbgLog.logStacktrace(e);
-        }
-
-        try
-        {
-            motors.put("leftSpool", hardwareMap.dcMotor.get("leftSpool"));
-        }
-        catch (Exception e)
-        {
-            unmappedComponents.add("leftSpool");
-            DbgLog.logStacktrace(e);
-        }
-
-        try
-        {
-            motors.put("rightSpool", hardwareMap.dcMotor.get("rightSpool"));
-
-            if (motors.get("rightSpool") != null)
-                motors.get("rightSpool").setDirection(DcMotor.Direction.REVERSE);
-        }
-        catch (Exception e)
-        {
-            unmappedComponents.add("rightSpool");
-            DbgLog.logStacktrace(e);
-        }
-
-        try
-        {
-            motors.put("leftRangle", hardwareMap.dcMotor.get("leftRangle"));
-        }
-        catch (Exception e)
-        {
-            unmappedComponents.add("leftRangle");
-            DbgLog.logStacktrace(e);
-        }
-
-        try
-        {
-            motors.put("rightRangle", hardwareMap.dcMotor.get("rightRangle"));
-
-            if (motors.get("rightRangle") != null)
-                motors.get("rightRangle").setDirection(DcMotor.Direction.REVERSE);
-        }
-        catch (Exception e)
-        {
-            unmappedComponents.add("rightRangle");
-            DbgLog.logStacktrace(e);
-        }
-
-        try
-        {
-            motors.put("brush", hardwareMap.dcMotor.get("rightRangle"));
-        }
-        catch (Exception e)
-        {
-            unmappedComponents.add("brush");
-            DbgLog.logStacktrace(e);
-        }
-        
-        /*
-        try
-        {
-            leftDrive = hardwareMap.dcMotor.get("leftDrive");
-
-            if (leftDrive != null && driveEncoders)
-                leftDrive.setChannelMode(DcMotorController.RunMode.RUN_TO_POSITION);
-        }
-        catch (Exception e)
-        {
-            unmappedComponents.add("leftDrive");
-            DbgLog.logStacktrace(e);
-        }
-
-        try
-        {
-            rightDrive = hardwareMap.dcMotor.get("rightDrive");
-
-            if (rightDrive != null)
-            {
-                rightDrive.setDirection(DcMotor.Direction.REVERSE);
-                if (driveEncoders)
+                DcMotor rightDrive = encodedMotors.get("rightDrive");
+                if (rightDrive != null)
+                {
                     rightDrive.setChannelMode(DcMotorController.RunMode.RUN_TO_POSITION);
+                    rightDrive.setPower(1);
+                    rightDrive.setDirection(DcMotor.Direction.REVERSE);
+                    encodedMotors.put("rightDrive", rightDrive);
+                }
+            }
+            else
+            {
+                nonEncodedMotors.put("rightDrive", hardwareMap.dcMotor.get("rightDrive"));
+
+                DcMotor rightDrive = encodedMotors.get("rightDrive");
+                if (rightDrive != null)
+                {
+                    rightDrive.setDirection(DcMotor.Direction.REVERSE);
+                    encodedMotors.put("rightDrive", rightDrive);
+                }
             }
         }
         catch (Exception e)
         {
             unmappedComponents.add("rightDrive");
-            DbgLog.logStacktrace(e);
+            //DbgLog.logStacktrace(e);
         }
 
         try
         {
-            pimpWheel = hardwareMap.dcMotor.get("pimpWheel");
+            encodedMotors.put("pimpWheel", hardwareMap.dcMotor.get("pimpWheel"));
 
-            if (pimpWheel != null)
+            if (encodedMotors.get("pimpWheel") != null)
             {
-                pimpWheel.setChannelMode(DcMotorController.RunMode.RUN_TO_POSITION);
-                pimpWheel.setPower(1);
+                encodedMotors.get("pimpWheel").setChannelMode(DcMotorController.RunMode.RUN_TO_POSITION);
+                encodedMotors.get("pimpWheel").setPower(1);
             }
         }
         catch (Exception e)
         {
             unmappedComponents.add("pimpWheel");
-            DbgLog.logStacktrace(e);
+            //DbgLog.logStacktrace(e);
         }
 
         try
         {
-            leftSpool = hardwareMap.dcMotor.get("leftSpool");
+            nonEncodedMotors.put("leftSpool", hardwareMap.dcMotor.get("leftSpool"));
         }
         catch (Exception e)
         {
             unmappedComponents.add("leftSpool");
-            DbgLog.logStacktrace(e);
+            //DbgLog.logStacktrace(e);
         }
-        
+
         try
         {
-            rightSpool = hardwareMap.dcMotor.get("rightSpool");
+            nonEncodedMotors.put("rightSpool", hardwareMap.dcMotor.get("rightSpool"));
 
-            if (rightSpool != null)
-                rightSpool.setDirection(DcMotor.Direction.REVERSE);
+            if (nonEncodedMotors.get("rightSpool") != null)
+                nonEncodedMotors.get("rightSpool").setDirection(DcMotor.Direction.REVERSE);
         }
         catch (Exception e)
         {
             unmappedComponents.add("rightSpool");
-            DbgLog.logStacktrace(e);
+            //DbgLog.logStacktrace(e);
         }
 
         try
         {
-            leftRangle = hardwareMap.dcMotor.get("leftRangle");
+            nonEncodedMotors.put("leftRangle", hardwareMap.dcMotor.get("leftRangle"));
         }
         catch (Exception e)
         {
             unmappedComponents.add("leftRangle");
-            DbgLog.logStacktrace(e);
+            //DbgLog.logStacktrace(e);
         }
 
         try
         {
-            rightRangle = hardwareMap.dcMotor.get("rightRangle");
+            nonEncodedMotors.put("rightRangle", hardwareMap.dcMotor.get("rightRangle"));
 
-            if (rightRangle != null)
-                rightRangle.setDirection(DcMotor.Direction.REVERSE);
+            if (nonEncodedMotors.get("rightRangle") != null)
+                nonEncodedMotors.get("rightRangle").setDirection(DcMotor.Direction.REVERSE);
         }
         catch (Exception e)
         {
             unmappedComponents.add("rightRangle");
-            DbgLog.logStacktrace(e);
+            //DbgLog.logStacktrace(e);
         }
 
         try
         {
-            brush = hardwareMap.dcMotor.get("brush");
+            nonEncodedMotors.put("brush", hardwareMap.dcMotor.get("brush"));
         }
         catch (Exception e)
         {
             unmappedComponents.add("brush");
-            DbgLog.logStacktrace(e);
+            //DbgLog.logStacktrace(e);
         }
-        */
         
         // Servos
 
+        servoPos.put("leftBox", L_BOX_UP);
+        servoPos.put("rightBox", R_BOX_UP);
+        servoPos.put("leftBrushArm", L_BRUSH_BAR_UP);
+        servoPos.put("rightBrushArm", R_BRUSH_BAR_UP);
+        servoPos.put("leftClaw", L_CLAW_UP);
+        servoPos.put("rightClaw", R_CLAW_UP);
+
         try
         {
-            servos.put("leftBoxServo", hardwareMap.servo.get("leftBoxServo"));
+            servos.put("leftBox", hardwareMap.servo.get("leftBoxServo"));
         }
         catch (Exception e)
         {
             unmappedComponents.add("leftBoxServo");
-            DbgLog.logStacktrace(e);
+            //DbgLog.logStacktrace(e);
         }
 
         try
         {
-            servos.put("rightBoxServo", hardwareMap.servo.get("rightBoxServo"));
+            servos.put("rightBox", hardwareMap.servo.get("rightBoxServo"));
         }
         catch (Exception e)
         {
             unmappedComponents.add("rightBoxServo");
-            DbgLog.logStacktrace(e);
+            //DbgLog.logStacktrace(e);
         }
 
         try
         {
-            servos.put("leftBrushArmServo", hardwareMap.servo.get("leftBrushArmServo"));
+            servos.put("leftBrushArm", hardwareMap.servo.get("leftBrushArmServo"));
         }
         catch (Exception e)
         {
             unmappedComponents.add("leftBrushArmServo");
-            DbgLog.logStacktrace(e);
+            //DbgLog.logStacktrace(e);
         }
 
         try
         {
-            servos.put("rightBrushArmServo", hardwareMap.servo.get("rightBrushArmServo"));
+            servos.put("rightBrushArm", hardwareMap.servo.get("rightBrushArmServo"));
         }
         catch (Exception e)
         {
             unmappedComponents.add("rightBrushArmServo");
-            DbgLog.logStacktrace(e);
+            //DbgLog.logStacktrace(e);
         }
 
         try
         {
-            servos.put("leftClawServo", hardwareMap.servo.get("leftClawServo"));
+            servos.put("leftClaw", hardwareMap.servo.get("leftClawServo"));
         }
         catch (Exception e)
         {
             unmappedComponents.add("leftClawServo");
-            DbgLog.logStacktrace(e);
+            //DbgLog.logStacktrace(e);
         }
 
         try
         {
-            servos.put("rightClawServo", hardwareMap.servo.get("rightClawServo"));
+            servos.put("rightClaw", hardwareMap.servo.get("rightClawServo"));
         }
         catch (Exception e)
         {
             unmappedComponents.add("rightClawServo");
-            DbgLog.logStacktrace(e);
+            //DbgLog.logStacktrace(e);
         }
-        /*
-        try
-        {
-            leftBoxServo = hardwareMap.servo.get("leftBoxServo");
-        }
-        catch (Exception e)
-        {
-            unmappedComponents.add("leftBoxServo");
-            DbgLog.logStacktrace(e);
-        }
-
-        try
-        {
-            rightBoxServo = hardwareMap.servo.get("rightBoxServo");
-        }
-        catch (Exception e)
-        {
-            unmappedComponents.add("rightBoxServo");
-            DbgLog.logStacktrace(e);
-        }
-
-        try
-        {
-            leftBrushArmServo = hardwareMap.servo.get("leftBrushArmServo");
-        }
-        catch (Exception e)
-        {
-            unmappedComponents.add("leftBrushArmServo");
-            DbgLog.logStacktrace(e);
-        }
-
-        try
-        {
-            rightBrushArmServo = hardwareMap.servo.get("rightBrushArmServo");
-        }
-        catch (Exception e)
-        {
-            unmappedComponents.add("rightBrushArmServo");
-            DbgLog.logStacktrace(e);
-        }
-
-        try
-        {
-            leftClawServo = hardwareMap.servo.get("leftClawServo");
-        }
-        catch (Exception e)
-        {
-            unmappedComponents.add("leftClawServo");
-            DbgLog.logStacktrace(e);
-        }
-
-        try
-        {
-            rightClawServo = hardwareMap.servo.get("rightClawServo");
-        }
-        catch (Exception e)
-        {
-            unmappedComponents.add("rightClawServo");
-            DbgLog.logStacktrace(e);
-        }
-*/
-        /*
-         *
-         */
     }
 
     // Getters
     public HashSet<String> getUnmappedComponents() {return unmappedComponents;}
     public HashSet<String> getOtherErrors() {return otherErrors;}
-    public double[] getServoVals()
+    public HashMap<String, Double> getServoPos() {return servoPos;}
+    protected boolean isControllerModeChanged(int controllerIndex)
     {
-        double[] servoVals = new double[6];
+        if (controllerIndex == -1)
+        {
+            DcMotorController.DeviceMode devMode1 = motorControlrs[0].getMotorControllerDeviceMode();
+            DcMotorController.DeviceMode devMode2 = motorControlrs[2].getMotorControllerDeviceMode();
 
-        servoVals[0] = leftBoxServoPos;
-        servoVals[1] = rightBoxServoPos;
-        servoVals[2] = leftClawServoPos;
-        servoVals[3] = rightClawServoPos;
-        servoVals[4] = leftBrushArmServoPos;
-        servoVals[5] = rightBrushArmServoPos;
-        return servoVals;
+            if (devMode1 == DcMotorController.DeviceMode.READ_ONLY
+                    || devMode1 == DcMotorController.DeviceMode.WRITE_ONLY)
+            {
+                if (devMode2 == DcMotorController.DeviceMode.READ_ONLY
+                        || devMode2 == DcMotorController.DeviceMode.WRITE_ONLY)
+                {
+                    return true;
+                }
+                else
+                    return false;
+            }
+            else
+                return false;
+        }
+        else
+        {
+            DcMotorController.DeviceMode devMode = motorControlrs[controllerIndex].getMotorControllerDeviceMode();
+            if (devMode == DcMotorController.DeviceMode.READ_ONLY
+                    || devMode == DcMotorController.DeviceMode.WRITE_ONLY)
+                return true;
+            else
+                return false;
+        }
+    }
+
+    protected boolean isDriveRunning()
+    {
+        if (motorControlrs[0].getMotorControllerDeviceMode() == DcMotorController.DeviceMode.READ_ONLY
+                && motorControlrs[2].getMotorControllerDeviceMode() == DcMotorController.DeviceMode.READ_ONLY)
+        {
+            if (encodedMotors.get("leftDrive").isBusy() || encodedMotors.get("rightDrive").isBusy())
+                return true;
+            else
+                return false;
+        }
+        else
+            return false;
     }
     
     // Setters
     
-    protected void setMotorPower(String motorName, double power)
+    protected void setNonEncodedMotorPower(String motorName, double power)
     {
-        
+        if (motorPower.get(motorName) != null)
+            motorPower.put(motorName, power);
+        else
+            otherErrors.add("COULD NOT SET MOTOR POWER: " + motorName);
+    }
+
+    protected void setEncodedMotorPos(String motorName, int pos)
+    {
+        if (motorPos.get(motorName) != null) // pls work
+            motorPos.put(motorName, pos);
+        else
+            otherErrors.add("COULD NOT SET MOTOR POS: " + motorName);
     }
     
-    protected void setServoVal(String servoName, double servoPos)
+    protected void setServoVal(String servoName, double pos)
     {
-        
+        if (servoPos.get(servoName) != null)
+            servoPos.put(servoName, pos);
+        else
+            otherErrors.add("COULD NOT SET SERVO POS: " + servoName);
+    }
+
+    protected void setControllerMode(int controllerIndex, DcMotorController.DeviceMode deviceMode)
+    {
+        if (controllerIndex == -1)
+        {
+            motorControlrs[0].setMotorControllerDeviceMode(deviceMode);
+            motorControlrs[2].setMotorControllerDeviceMode(deviceMode);
+        }
+        else
+            motorControlrs[controllerIndex].setMotorControllerDeviceMode(deviceMode);
     }
 
     @Override
     public void start()
     {
-        // Set Servos to default positions
-        leftBoxServoPos = L_BOX_UP;
-        rightBoxServoPos = R_BOX_UP;
 
-        leftClawServoPos = L_CLAW_UP;
-        rightClawServoPos = R_CLAW_UP;
-
-        leftBrushArmServoPos = L_BRUSH_BAR_DOWN;
-        rightBrushArmServoPos = R_BRUSH_BAR_DOWN;
     }
 
     @Override
     public void loop()
     {
+        // Update Motor Positions
+        if (driveEncoders)
+        {
+            encodedMotors.get("leftDrive").setTargetPosition(motorPos.get("leftDrive"));
+            encodedMotors.get("rightDrive").setTargetPosition(motorPos.get("rightDrive"));
+        }
+        else
+        {
+            nonEncodedMotors.get("leftDrive").setPower(motorPower.get("leftDrive"));
+            nonEncodedMotors.get("rightDrive").setPower(motorPower.get("rightDrive"));
+        }
+        encodedMotors.get("pimpWheel").setTargetPosition((int)Math.round(motorPos.get("pimpWheel")));
+
+        nonEncodedMotors.get("leftRangle").setPower(motorPower.get("leftRangle"));
+        nonEncodedMotors.get("rightRangle").setPower(motorPower.get("rightRangle"));
+
+        nonEncodedMotors.get("leftSpool").setPower(motorPower.get("leftSpool"));
+        nonEncodedMotors.get("rightSpool").setPower(motorPower.get("rightSpool"));
+
+        nonEncodedMotors.get("brush").setPower(motorPower.get("brush"));
+
         // Update Servo Positions (servos must be sent a position, otherwise they will move to default)
-        servos.get("leftBoxServo").setPosition(leftBoxServoPos);
-        servos.get("rightBoxServo").setPosition(rightBoxServoPos);
+        servos.get("leftBox").setPosition(servoPos.get("leftBox"));
+        servos.get("rightBox").setPosition(servoPos.get("rightBox"));
 
-        servos.get("leftClawServo").setPosition(leftClawServoPos);
-        servos.get("rightClawServo").setPosition(rightClawServoPos);
+        servos.get("leftClaw").setPosition(servoPos.get("leftClaw"));
+        servos.get("rightClaw").setPosition(servoPos.get("rightClaw"));
 
-        servos.get("leftBrushArmServo").setPosition(leftBrushArmServoPos);
-        servos.get("rightBrushArmServo").setPosition(rightBrushArmServoPos);
-    }
-
-    @Override
-    public void stop()
-    {
-
+        servos.get("leftBrushArm").setPosition(servoPos.get("leftBrushArm"));
+        servos.get("rightBrushArm").setPosition(servoPos.get("rightBrushArm"));
     }
 }
