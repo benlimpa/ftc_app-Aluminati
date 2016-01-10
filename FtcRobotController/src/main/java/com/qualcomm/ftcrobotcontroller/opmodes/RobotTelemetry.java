@@ -1,5 +1,6 @@
 package com.qualcomm.ftcrobotcontroller.opmodes;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -14,18 +15,28 @@ public class RobotTelemetry extends RobotHardware
     private final int RESERVED_INDEX = 6;
     private HashSet<String> unmappedComponents;
     private LinkedHashMap<String, String> telemetryData;
-    private int telemetryDataIndex;
 
     public RobotTelemetry(boolean driveEncoders)
     {
         super(driveEncoders);
-        unmappedComponents = getUnmappedComponents();
+    }
+
+    public void initTelemetry()
+    {
+        initComponents();
         telemetryData = new LinkedHashMap<String, String>();
-        telemetryDataIndex = 0;
+        unmappedComponents = getUnmappedComponents();
     }
 
     public void updateTelemetry()
     {
+        // Display other errors
+        // Make sure the errors take precedence in the display
+        for (String error : getOtherErrors())
+        {
+            telemetry.addData("000: ERROR:", error);
+        }
+
         // Create Warning if required components cannot be mapped
         if (!unmappedComponents.isEmpty())
         {
@@ -48,13 +59,19 @@ public class RobotTelemetry extends RobotHardware
         4: leftBrush
         5: rightBrush
         */
-        double[] servoVals = getServoVals();
-        telemetry.addData("01: ", "Left Box Servo: " + servoVals[0]);
-        telemetry.addData("02: ", "Right Box Servo: " + servoVals[1]);
-        telemetry.addData("03: ", "Left Claw Servo: " + servoVals[2]);
-        telemetry.addData("04: ", "Right Claw Servo: " + servoVals[3]);
-        telemetry.addData("05: ", "Left Brush Arm Servo: " + servoVals[4]);
-        telemetry.addData("06: ", "Right Brush Arm Servo: " + servoVals[5]);
+
+        Set servoPosSet = getServoPos().entrySet();
+        Iterator servoPosIterator = servoPosSet.iterator();
+
+        // Servo Telemetry
+        int servoPosIndex = 1;
+        while (servoPosIterator.hasNext())
+        {
+            Map.Entry posEntry = (Map.Entry) servoPosIterator.next();
+
+            telemetry.addData("0" + servoPosIndex + ": ", posEntry.getKey() + ": " + posEntry.getValue());
+            servoPosIndex++;
+        }
 
         // Variable Telemetry
         Set telemetrySet = telemetryData.entrySet();
@@ -64,17 +81,14 @@ public class RobotTelemetry extends RobotHardware
         while (telemetryIterator.hasNext())
         {
             Map.Entry teleEntry = (Map.Entry) telemetryIterator.next();
-            telemetry.addData(teleIndex + ": ", (String) teleEntry.getKey() + (String) teleEntry.getValue());
-        }
-    }
 
-    public void addTelemetry(int index, String data)
-    {
-        if (!(index <= RESERVED_INDEX))
-            if (index < 10)
-                telemetry.addData("0" + index + ": ", data);
-            else
-                telemetry.addData(index + ": ", data);
+            String teleIndexString = String.valueOf(teleIndex);
+            if (teleIndex < 10) {
+                teleIndexString = "0" + teleIndexString;
+            }
+            telemetry.addData(teleIndexString + ": ", teleEntry.getKey() + (String) teleEntry.getValue());
+            teleIndex++;
+        }
     }
 
     public void addTelemetry(String index, String data)
