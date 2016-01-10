@@ -325,7 +325,7 @@ public class MainTeleOp extends OpMode
         {
             leftBrushArmServoPos = L_BRUSH_BAR_UP;
             rightBrushArmServoPos = R_BRUSH_BAR_UP;
-            brushTime = 3;
+            brushTime = 9;
         }
         else if (gamepad1.right_stick_button)
         {
