@@ -57,11 +57,15 @@ public class FtcOpModeRegister implements OpModeRegister {
 
     manager.register("NullOp", NullOp.class);
 
-    manager.register("KendraTankDrive", KendraTankDrive.class);
+    //manager.register("LinearAuto", LinearAuto.class);
+    //manager.register("LinearAutoRight", LinearAutoRight.class);
+    //manager.register("KendraTankDrive", KendraTankDrive.class);
     manager.register("MainTeleOp", MainTeleOp.class);
-    manager.register("MotorEncodertest", MotorEncoderTest.class);
-    manager.register("ServoUtility", ServoUtility.class);
-    manager.register("SensorTest", SensorTest.class);
+    //manager.register("RobotTeleOp", RobotTeleOp.class);
+    //manager.register("RobotAuto", RobotAuto.class);
+    //manager.register("MotorEncodertest", MotorEncoderTest.class);
+    //manager.register("ServoUtility", ServoUtility.class);
+    //manager.register("SensorTest", SensorTest.class);
 
 
     /*
